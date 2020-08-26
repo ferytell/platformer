@@ -31,7 +31,7 @@ game_map = [['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'
 
 grass_img = pygame.image.load('grras.png')
 dirt_img = pygame.image.load('dirrt.png')
-player_image = pygame.image.load("playerr.png").convert()
+player_image = pygame.image.load("playerr.png")
 #player_image.set_colorkey((55,255,255))
 player_rect = pygame.Rect(100,100,5,13)
 
