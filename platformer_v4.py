@@ -15,26 +15,28 @@ moving_left = False
 vertical_momentum = 0
 air_timer = 0
 
-game_map = [['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0',],
-            ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0',],
-            ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0',],
-            ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','1','1','1','1','1','1','1','0','0',],
-            ['0','0','2','2','2','2','0','0','0','0','0','0','0','0','0','0','0','2','2','2','0','0','0','0','0','0','0','0','0','0','0','0','0','0',],
-            ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','1','1','1','1','1','0','0','0','0','0','0','0','0','0','0','0','0',],
-            ['2','2','2','2','2','2','2','2','2','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0',],
-            ['1','1','1','1','1','1','1','1','1','0','1','1','1','1','1','1','1','2','2','2','1','0','0','0','1','1','1','1','1','1','0','0','0','0',],
-            ['0','0','1','1','1','1','0','0','0','0','0','0','0','0','0','0','0','1','1','1','1','0','0','0','0','0','0','0','0','0','0','0','0','0',],
-            ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','1','1','1','1','1','0','0','0','0','0','0','0','0','0','0','0','0',],
-            ['2','2','2','2','2','0','2','2','2','2','2','2','2','2','2','2','2','1','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0',],
-            ['1','1','1','1','1','2','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','0','0','0','1','1','1','1','1','1','0','0','0','0',],
-            ['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','0','0','0','0','0','0','0','0','0','0','0','0',],
-            ['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1',]]
+true_scroll = [0,0]
+
+
+def load_map(path):
+    f = open(path + ".txt","r")
+    data = f.read()
+    f.close()
+    data = data.split('\n')
+    game_map = []
+    for row in data:
+        game_map.append(list(row))
+    return game_map
+
+game_map = load_map('map')
 
 grass_img = pygame.image.load('grras.png')
 dirt_img = pygame.image.load('dirrt.png')
 player_image = pygame.image.load("playerr.png")
 #player_image.set_colorkey((55,255,255))
 player_rect = pygame.Rect(100,100,5,13)
+
+background_objects = [[0.25,[120,10,70,400]],[0.25,[280,30,40,400]],[0.5,[30,40,50,100]],[0.5,[60,10,80,400]]]
 
 def collision_test (rect, tiles):
     hit_list = []
@@ -54,7 +56,7 @@ def move (rect, movement, tiles):
         elif movement[0] < 0:
             rect.left = tile.right
             collision_types["left"] = True
-    rect.y +=movement [1]
+    rect.y += movement [1]
     hit_list = collision_test(rect, tiles)
     for tile in hit_list:
         if movement[1] > 0 :
@@ -74,15 +76,28 @@ while True:
 
     display.fill((145,244,255))
 
+    true_scroll [0] += (player_rect.x-true_scroll[0]-150)/20
+    true_scroll [1] += (player_rect.y-true_scroll[1]-106)/20
+    scroll = true_scroll.copy()
+    scroll[0] = int(scroll[0])
+    scroll[1] = int(scroll[1])
+
+    pygame.draw.rect(display,(7,80,75),pygame.Rect(0,120,300,80))
+    for background_object in background_objects:
+        obj_rect = pygame.Rect(background_object[1][0] - scroll[0]*background_object[0], background_object[1][1]-scroll[1]*background_object[0], background_object[1][2], background_object[1][3])
+        if background_object[0] == 0.5:
+            pygame.draw.rect(display,(14,22,150), obj_rect)
+        else:
+            pygame.draw.rect(display, (100,20,10), obj_rect)
     tile_rects = []
     y = 0
     for layer in game_map:
         x = 0
         for tile in layer:
             if tile =="1":
-                display.blit(dirt_img,(x*16, y*16))
+                display.blit(dirt_img,(x*16-scroll[0], y*16-scroll[1]))
             if tile =="2":
-                display.blit(grass_img,(x*16, y*16))
+                display.blit(grass_img,(x*16-scroll[0], y*16-scroll[1]))
             if tile != "0":
                 tile_rects.append(pygame.Rect(x*16, y*16, 16, 16))
 
@@ -107,7 +122,7 @@ while True:
     else:
         air_timer += 1
 
-    display.blit(player_image, (player_rect.x, player_rect.y))
+    display.blit(player_image, (player_rect.x - scroll[0], player_rect.y - scroll[1]))
 
 
     for event in pygame.event.get():
